@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kho Clipboard - Quản Lý Ghi Chú (Firebase)</title>
-    <meta name="description" content="Ứng dụng lưu trữ clipboard, ghi chú nhanh, hỗ trợ tag và tìm kiếm, đồng bộ Firebase.">
+    <title>Kho Clipboard - Đồng Bộ Đa Thiết Bị</title>
+    <meta name="description" content="Ứng dụng lưu trữ clipboard, ghi chú nhanh, hỗ trợ tag và tìm kiếm, đồng bộ Firebase Public.">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
@@ -84,7 +84,6 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Config & Init ---
-        // Đã cập nhật theo cấu hình bạn cung cấp
         const firebaseConfig = {
             apiKey: "AIzaSyABja0AYV5E_n0UgtMyICjVHyBMsevlyqU",
             authDomain: "clipboard-aca15.firebaseapp.com",
@@ -148,9 +147,10 @@
             List: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
             Link: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
             Tag: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94 .94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>,
-            CloudCheck: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+            CloudCheck: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
             CloudError: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-            Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>,
+            Globe: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         };
 
         const ITEMS_PER_PAGE = 20;
@@ -170,9 +170,7 @@
             const contentEditableRef = useRef(null);
 
             useEffect(() => {
-                // Chỉ set innerHTML khi component mount hoặc khi external update (nhưng cần cẩn thận với cursor)
                 if (contentEditableRef.current && contentEditableRef.current.innerHTML !== html) {
-                     // Kiểm tra xem element có đang focus không, nếu có thì hạn chế update để tránh nhảy cursor
                      if (document.activeElement !== contentEditableRef.current) {
                         contentEditableRef.current.innerHTML = html || "";
                      }
@@ -262,7 +260,6 @@
                             {isExpanded ? (
                                 <>
                                     <div className="flex-1 min-w-0 w-full relative group/editor">
-                                        {/* Dùng key để force re-render khi item ID thay đổi, đảm bảo content đúng */}
                                         <RichTextEditor
                                             key={item.id} 
                                             html={item.content}
@@ -288,7 +285,6 @@
                                     </div>
                                 </>
                             ) : (
-                                // Chế độ thu gọn: Chỉ hiện text preview
                                 <div className="flex-1 min-w-0 w-full flex items-center cursor-pointer opacity-60 hover:opacity-100 transition-opacity" onClick={() => setIsExpanded(true)}>
                                     <p className="text-xs text-slate-400 truncate select-none">
                                         {stripHtml(item.content) || "(Không có nội dung)"}
@@ -335,29 +331,22 @@
             const [authError, setAuthError] = useState(null);
             const [formData, setFormData] = useState({ title: '', content: '', tags: '' });
             
-            // Pending updates map for debouncing firestore writes
             const pendingUpdatesRef = useRef({});
 
             // --- Auth & Initial Setup ---
             useEffect(() => {
                 const initAuth = async () => {
                     try {
-                        // Thử đăng nhập bằng token hệ thống trước (nếu môi trường hỗ trợ)
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
                             throw new Error("No system token");
                         }
                     } catch (err) {
-                        console.log("System token auth failed (expected if using custom config), falling back to anonymous:", err);
-                        
                         try {
-                            // Fallback: Đăng nhập ẩn danh vào project mới của bạn
                             await signInAnonymously(auth);
                         } catch (anonErr) {
-                            // Changed to console.warn so it doesn't look like a crash
                             console.warn("Anonymous auth failed:", anonErr);
-                            // Bắt lỗi cụ thể auth/admin-restricted-operation
                             if (anonErr.code === 'auth/admin-restricted-operation') {
                                 setAuthError({
                                     title: "⚠️ Chưa bật xác thực ẩn danh (Anonymous Auth)",
@@ -386,15 +375,15 @@
                 return () => unsubscribe();
             }, []);
 
-            // --- Load Data from Firestore ---
+            // --- Load Data from Firestore (PUBLIC PATH) ---
             useEffect(() => {
                 if (!user) return;
 
+                // CHÚ Ý: Chuyển sang Public Path để đồng bộ giữa các thiết bị
                 const q = query(
-                    collection(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items')
+                    collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items')
                 );
 
-                // Use onSnapshot for real-time updates
                 const unsubscribe = onSnapshot(q, (snapshot) => {
                     const loadedItems = snapshot.docs.map(doc => {
                         const data = doc.data();
@@ -406,7 +395,6 @@
                     setItems(loadedItems);
                 }, (error) => {
                     console.error("Firestore error:", error);
-                    // Không hiện lỗi nếu là do permission denied khi chưa auth xong
                     if (user) showNotification("Lỗi tải dữ liệu", "error");
                 });
 
@@ -429,17 +417,17 @@
                 setTimeout(() => setNotification(null), 3000);
             };
 
-            // --- Handle Update with Debounce for Performance ---
+            // --- Update Firestore (PUBLIC PATH) ---
             const updateFirestore = useCallback(async (id, dataToUpdate) => {
                 if (!user) return;
                 const item = items.find(i => i.id === id);
                 if (!item || !item.firestoreId) return;
 
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items', item.firestoreId);
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'clipboard_items', item.firestoreId);
                     await updateDoc(docRef, {
                         ...dataToUpdate,
-                        date: Date.now() // Update timestamp to bring to top if sorted by date
+                        date: Date.now() 
                     });
                 } catch (err) {
                     console.error("Update failed", err);
@@ -447,14 +435,12 @@
             }, [user, items]);
 
             const handleInlineUpdate = (id, field, value) => {
-                // 1. Immediate Local Update
                 setItems(prevItems => 
                     prevItems.map(item => 
                         item.id === id ? { ...item, [field]: value, date: Date.now() } : item
                     )
                 );
 
-                // 2. Debounced Firestore Update
                 const key = `${id}-${field}`;
                 if (pendingUpdatesRef.current[key]) {
                     clearTimeout(pendingUpdatesRef.current[key]);
@@ -476,13 +462,14 @@
                 }
 
                 const newItem = { 
-                    id: Date.now(), // Logical ID
+                    id: Date.now(), 
                     ...formData, 
                     date: Date.now() 
                 };
 
                 try {
-                    await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items'), newItem);
+                    // PUBLIC PATH
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items'), newItem);
                     showNotification('Đã thêm mới!');
                     closeModal();
                 } catch (err) {
@@ -497,7 +484,8 @@
                     const item = items.find(i => i.id === deleteId);
                     if (item && item.firestoreId) {
                         try {
-                            await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items', item.firestoreId));
+                            // PUBLIC PATH
+                            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'clipboard_items', item.firestoreId));
                             showNotification('Đã xóa thành công.', 'error');
                         } catch (err) {
                             showNotification('Lỗi xóa!', 'error');
@@ -581,8 +569,8 @@
                                 
                                 for (const item of imported) {
                                     if (currentIds.has(item.id)) continue;
-
-                                    await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items'), {
+                                    // PUBLIC PATH
+                                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items'), {
                                         ...item,
                                         date: item.date || Date.now()
                                     });
@@ -731,8 +719,8 @@
                                 </div>
                                 <span className="text-slate-400 hidden sm:inline">thẻ đang xem</span>
                                 {user ? (
-                                     <span className="flex items-center text-emerald-600 font-medium ml-2" title="Đã kết nối Cloud">
-                                        <Icons.CloudCheck /> <span className="ml-1">Đồng bộ</span>
+                                     <span className="flex items-center text-blue-600 font-medium ml-2" title="Đồng bộ công khai">
+                                        <Icons.Globe /> <span className="ml-1">Công khai</span>
                                      </span>
                                 ) : (
                                     <span className="flex items-center text-red-400 italic ml-2" title="Chưa kết nối">
@@ -754,7 +742,7 @@
 
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded border border-dashed border-slate-300">
-                                <p className="text-slate-400 text-xs">Chưa có dữ liệu nào.</p>
+                                <p className="text-slate-400 text-xs">Chưa có dữ liệu nào (Chế độ công khai).</p>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
