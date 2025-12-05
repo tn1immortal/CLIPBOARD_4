@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kho Clipboard - Đồng Bộ Đa Thiết Bị</title>
+    <title>Kho Clipboard - Đồng Bộ Vĩnh Viễn</title>
     <meta name="description" content="Ứng dụng lưu trữ clipboard, ghi chú nhanh, hỗ trợ tag và tìm kiếm, đồng bộ Firebase Public.">
     
     <!-- Favicon -->
@@ -96,7 +96,12 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- CẤU HÌNH QUAN TRỌNG: CỐ ĐỊNH ID ---
+        // Thay vì dùng ID động, ta dùng một chuỗi cố định.
+        // Bạn hãy đổi chuỗi 'my-fixed-clipboard-storage' thành một tên bí mật của riêng bạn (ví dụ: 'kho-cua-tuan-123')
+        // để đảm bảo dữ liệu luôn được tải lại đúng chỗ dù file HTML có cập nhật.
+        const appId = 'my-fixed-clipboard-storage'; 
 
         const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
@@ -719,8 +724,8 @@
                                 </div>
                                 <span className="text-slate-400 hidden sm:inline">thẻ đang xem</span>
                                 {user ? (
-                                     <span className="flex items-center text-blue-600 font-medium ml-2" title="Đồng bộ công khai">
-                                        <Icons.Globe /> <span className="ml-1">Công khai</span>
+                                     <span className="flex items-center text-blue-600 font-medium ml-2" title="Đồng bộ công khai (Cố định ID)">
+                                        <Icons.Globe /> <span className="ml-1">Đã kết nối kho: {appId.substring(0, 12)}...</span>
                                      </span>
                                 ) : (
                                     <span className="flex items-center text-red-400 italic ml-2" title="Chưa kết nối">
@@ -742,7 +747,7 @@
 
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded border border-dashed border-slate-300">
-                                <p className="text-slate-400 text-xs">Chưa có dữ liệu nào (Chế độ công khai).</p>
+                                <p className="text-slate-400 text-xs">Chưa có dữ liệu nào trong kho "{appId}".</p>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
