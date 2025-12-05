@@ -84,7 +84,16 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Config & Init ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Đã cập nhật theo cấu hình bạn cung cấp
+        const firebaseConfig = {
+            apiKey: "AIzaSyABja0AYV5E_n0UgtMyICjVHyBMsevlyqU",
+            authDomain: "clipboard-aca15.firebaseapp.com",
+            projectId: "clipboard-aca15",
+            storageBucket: "clipboard-aca15.firebasestorage.app",
+            messagingSenderId: "886054305884",
+            appId: "1:886054305884:web:1cc0497875be8ad364a699"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -139,7 +148,9 @@
             List: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
             Link: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
             Tag: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94 .94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>,
-            CloudCheck: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            CloudCheck: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+            CloudError: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+            Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
         };
 
         const ITEMS_PER_PAGE = 20;
@@ -321,6 +332,7 @@
             const [copiedId, setCopiedId] = useState(null);
             const [currentPage, setCurrentPage] = useState(1);
             const [notification, setNotification] = useState(null);
+            const [authError, setAuthError] = useState(null);
             const [formData, setFormData] = useState({ title: '', content: '', tags: '' });
             
             // Pending updates map for debouncing firestore writes
@@ -329,10 +341,44 @@
             // --- Auth & Initial Setup ---
             useEffect(() => {
                 const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    try {
+                        // Thử đăng nhập bằng token hệ thống trước (nếu môi trường hỗ trợ)
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            throw new Error("No system token");
+                        }
+                    } catch (err) {
+                        console.log("System token auth failed (expected if using custom config), falling back to anonymous:", err);
+                        
+                        try {
+                            // Fallback: Đăng nhập ẩn danh vào project mới của bạn
+                            await signInAnonymously(auth);
+                        } catch (anonErr) {
+                            // Changed to console.warn so it doesn't look like a crash
+                            console.warn("Anonymous auth failed:", anonErr);
+                            // Bắt lỗi cụ thể auth/admin-restricted-operation
+                            if (anonErr.code === 'auth/admin-restricted-operation') {
+                                setAuthError({
+                                    title: "⚠️ Chưa bật xác thực ẩn danh (Anonymous Auth)",
+                                    message: "Để ứng dụng hoạt động, bạn cần vào Firebase Console và bật tính năng này.",
+                                    steps: [
+                                        "1. Truy cập https://console.firebase.google.com",
+                                        "2. Chọn dự án 'clipboard-aca15'",
+                                        "3. Vào mục Build > Authentication > Sign-in method",
+                                        "4. Chọn 'Anonymous' và bật 'Enable'",
+                                        "5. Bấm 'Save' và quay lại đây bấm 'Thử lại'"
+                                    ],
+                                    isCritical: true
+                                });
+                            } else {
+                                setAuthError({
+                                    title: "Lỗi Đăng Nhập",
+                                    message: anonErr.message,
+                                    isCritical: true
+                                });
+                            }
+                        }
                     }
                 };
                 initAuth();
@@ -352,20 +398,16 @@
                 const unsubscribe = onSnapshot(q, (snapshot) => {
                     const loadedItems = snapshot.docs.map(doc => {
                         const data = doc.data();
-                        // Ensure we have a consistent ID. 
-                        // data.id is the logical ID (timestamp originally), doc.id is Firestore ID.
-                        // We attach doc.id as 'firestoreId' for updates.
                         return { ...data, firestoreId: doc.id };
                     });
                     
-                    // Client-side sorting by date descending (newest first)
-                    // Original logic used Date.now() as ID and sort order, assume 'date' field exists
                     loadedItems.sort((a, b) => (b.date || 0) - (a.date || 0));
                     
                     setItems(loadedItems);
                 }, (error) => {
                     console.error("Firestore error:", error);
-                    showNotification("Lỗi tải dữ liệu", "error");
+                    // Không hiện lỗi nếu là do permission denied khi chưa auth xong
+                    if (user) showNotification("Lỗi tải dữ liệu", "error");
                 });
 
                 return () => unsubscribe();
@@ -404,8 +446,6 @@
                 }
             }, [user, items]);
 
-            // This function updates local state immediately for UI responsiveness
-            // And schedules a Firestore update
             const handleInlineUpdate = (id, field, value) => {
                 // 1. Immediate Local Update
                 setItems(prevItems => 
@@ -415,17 +455,15 @@
                 );
 
                 // 2. Debounced Firestore Update
-                // Clear existing timeout for this specific item field
                 const key = `${id}-${field}`;
                 if (pendingUpdatesRef.current[key]) {
                     clearTimeout(pendingUpdatesRef.current[key]);
                 }
 
-                // Set new timeout (500ms debounce)
                 pendingUpdatesRef.current[key] = setTimeout(() => {
                     updateFirestore(id, { [field]: value });
                     delete pendingUpdatesRef.current[key];
-                }, 500); // 500ms delay
+                }, 500); 
             };
 
             const handleAdd = async (e) => {
@@ -517,7 +555,6 @@
             };
 
             const exportData = () => {
-                // Export clean data (without firestoreId)
                 const cleanData = items.map(({firestoreId, ...rest}) => rest);
                 const dataStr = JSON.stringify(cleanData, null, 2);
                 const blob = new Blob([dataStr], { type: "application/json" });
@@ -539,13 +576,10 @@
                         const imported = JSON.parse(e.target.result);
                         if (Array.isArray(imported)) {
                             if(confirm(`Tìm thấy ${imported.length} mục. Nhập vào Cloud?`)) {
-                                // Add logic to avoid duplicates? For now just add all.
-                                // Batch writes or sequential adds. Firestore batch limit is 500.
                                 let count = 0;
                                 const currentIds = new Set(items.map(i => i.id));
                                 
                                 for (const item of imported) {
-                                    // Skip if ID exists (simple duplicate check)
                                     if (currentIds.has(item.id)) continue;
 
                                     await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'clipboard_items'), {
@@ -597,8 +631,48 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-blue-100 pb-8 text-sm">
+                    {/* Critical Auth Error Modal */}
+                    {authError && authError.isCritical && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                            <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+                                <div className="bg-red-50 p-4 border-b border-red-100 flex items-start gap-3">
+                                    <div className="bg-red-100 p-2 rounded-full shrink-0">
+                                        <Icons.CloudError />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-red-700">{authError.title}</h3>
+                                        <p className="text-sm text-red-600 mt-1">{authError.message}</p>
+                                    </div>
+                                </div>
+                                
+                                {authError.steps && (
+                                    <div className="p-4 bg-slate-50 border-b border-slate-100">
+                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Hướng dẫn khắc phục:</p>
+                                        <ul className="text-sm text-slate-700 space-y-2">
+                                            {authError.steps.map((step, idx) => (
+                                                <li key={idx} className="flex gap-2">
+                                                    <span className="shrink-0">{step}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                <div className="p-4 bg-white flex justify-end">
+                                    <button 
+                                        onClick={() => window.location.reload()} 
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors shadow-sm"
+                                    >
+                                        <Icons.Refresh />
+                                        <span>Đã bật xong, Thử lại</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {notification && (
-                        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
+                        <div className={`fixed top-14 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
                             {notification.msg}
                         </div>
                     )}
@@ -661,7 +735,9 @@
                                         <Icons.CloudCheck /> <span className="ml-1">Đồng bộ</span>
                                      </span>
                                 ) : (
-                                    <span className="text-slate-400 italic ml-2">Đang kết nối...</span>
+                                    <span className="flex items-center text-red-400 italic ml-2" title="Chưa kết nối">
+                                        <Icons.CloudError /> <span className="ml-1">Mất kết nối</span>
+                                    </span>
                                 )}
                             </div>
 
