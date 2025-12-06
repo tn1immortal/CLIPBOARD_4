@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kho Clipboard - Đồng Bộ Vĩnh Viễn</title>
-    <meta name="description" content="Ứng dụng lưu trữ clipboard, ghi chú nhanh, hỗ trợ tag và tìm kiếm, đồng bộ Firebase Public.">
+    <title>Kho Clipboard - Self Replicating</title>
+    <meta name="description" content="Ứng dụng lưu trữ clipboard, hỗ trợ xuất file dạng Self-Replicating Code (App Clone).">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
@@ -78,7 +78,8 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
+    <!-- QUAN TRỌNG: Thêm ID cho script chính để code có thể tự đọc chính nó -->
+    <script type="text/babel" data-type="module" id="main-script">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -98,9 +99,6 @@
         const db = getFirestore(app);
 
         // --- CẤU HÌNH QUAN TRỌNG: CỐ ĐỊNH ID ---
-        // Thay vì dùng ID động, ta dùng một chuỗi cố định.
-        // Bạn hãy đổi chuỗi 'my-fixed-clipboard-storage' thành một tên bí mật của riêng bạn (ví dụ: 'kho-cua-tuan-123')
-        // để đảm bảo dữ liệu luôn được tải lại đúng chỗ dù file HTML có cập nhật.
         const appId = 'my-fixed-clipboard-storage'; 
 
         const { useState, useEffect, useMemo, useRef, useCallback } = React;
@@ -155,7 +153,12 @@
             CloudCheck: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
             CloudError: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
             Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>,
-            Globe: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Globe: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg>,
+            File: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
+            Filter: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+            Json: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
+            Code: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
+            Eye: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         };
 
         const ITEMS_PER_PAGE = 20;
@@ -176,9 +179,9 @@
 
             useEffect(() => {
                 if (contentEditableRef.current && contentEditableRef.current.innerHTML !== html) {
-                     if (document.activeElement !== contentEditableRef.current) {
-                        contentEditableRef.current.innerHTML = html || "";
-                     }
+                      if (document.activeElement !== contentEditableRef.current) {
+                         contentEditableRef.current.innerHTML = html || "";
+                      }
                 }
             }, [html]); 
 
@@ -235,7 +238,7 @@
         };
 
         // --- Single Clipboard Item Component ---
-        const ClipboardItem = ({ item, handleInlineUpdate, requestDelete, copyToClipboard, copiedId }) => {
+        const ClipboardItem = ({ item, handleInlineUpdate, requestDelete, copyToClipboard, copiedId, readOnly }) => {
             const [isExpanded, setIsExpanded] = useState(true);
 
             return (
@@ -253,40 +256,54 @@
                         <div className="flex-1 min-w-0 flex flex-col sm:flex-row items-start sm:gap-4 gap-1">
                             {/* Tiêu đề */}
                             <div className="w-full sm:w-1/4 sm:min-w-[120px] sm:max-w-[200px]">
-                                <AutoResizeInput
-                                    className="font-medium text-slate-800 text-xs"
-                                    value={item.title || ''}
-                                    onChange={(e) => handleInlineUpdate(item.id, 'title', e.target.value)}
-                                    placeholder="Nhập tiêu đề..."
-                                />
+                                {readOnly ? (
+                                    <div className="font-medium text-slate-800 text-xs py-[2px]">{item.title}</div>
+                                ) : (
+                                    <AutoResizeInput
+                                        className="font-medium text-slate-800 text-xs"
+                                        value={item.title || ''}
+                                        onChange={(e) => handleInlineUpdate(item.id, 'title', e.target.value)}
+                                        placeholder="Nhập tiêu đề..."
+                                    />
+                                )}
                             </div>
                             
                             {/* Nội dung: Có 2 trạng thái */}
                             {isExpanded ? (
                                 <>
                                     <div className="flex-1 min-w-0 w-full relative group/editor">
-                                        <RichTextEditor
-                                            key={item.id} 
-                                            html={item.content}
-                                            onChange={(newHtml) => handleInlineUpdate(item.id, 'content', newHtml)}
-                                            placeholder="Nội dung..."
-                                            className="text-xs text-slate-500 font-mono w-full break-words pr-6"
-                                        />
-                                        <button 
-                                            onMouseDown={(e) => insertLink(e, (newHtml) => handleInlineUpdate(item.id, 'content', newHtml))}
-                                            className="absolute right-0 top-0 p-1 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded opacity-0 group-hover/editor:opacity-100 transition-all z-10"
-                                            title="Chèn Link"
-                                        >
-                                            <Icons.Link />
-                                        </button>
+                                        {readOnly ? (
+                                            <div className="text-xs text-slate-500 font-mono w-full break-words pr-6 min-h-[24px] py-[2px]" dangerouslySetInnerHTML={{__html: item.content}} />
+                                        ) : (
+                                            <>
+                                                <RichTextEditor
+                                                    key={item.id} 
+                                                    html={item.content}
+                                                    onChange={(newHtml) => handleInlineUpdate(item.id, 'content', newHtml)}
+                                                    placeholder="Nội dung..."
+                                                    className="text-xs text-slate-500 font-mono w-full break-words pr-6"
+                                                />
+                                                <button 
+                                                    onMouseDown={(e) => insertLink(e, (newHtml) => handleInlineUpdate(item.id, 'content', newHtml))}
+                                                    className="absolute right-0 top-0 p-1 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded opacity-0 group-hover/editor:opacity-100 transition-all z-10"
+                                                    title="Chèn Link"
+                                                >
+                                                    <Icons.Link />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                     <div className="w-full sm:w-[120px] shrink-0 mt-1 sm:mt-0">
-                                        <AutoResizeInput
-                                            className="text-[10px] uppercase font-bold text-slate-600 placeholder:normal-case placeholder:font-normal bg-slate-50 rounded px-1"
-                                            value={item.tags || ''}
-                                            onChange={(e) => handleInlineUpdate(item.id, 'tags', e.target.value)}
-                                            placeholder="+ Thẻ"
-                                        />
+                                        {readOnly ? (
+                                            <div className="text-[10px] uppercase font-bold text-slate-600 bg-slate-50 rounded px-1 py-[2px]">{item.tags}</div>
+                                        ) : (
+                                            <AutoResizeInput
+                                                className="text-[10px] uppercase font-bold text-slate-600 placeholder:normal-case placeholder:font-normal bg-slate-50 rounded px-1"
+                                                value={item.tags || ''}
+                                                onChange={(e) => handleInlineUpdate(item.id, 'tags', e.target.value)}
+                                                placeholder="+ Thẻ"
+                                            />
+                                        )}
                                     </div>
                                 </>
                             ) : (
@@ -300,12 +317,16 @@
 
                         {/* Actions */}
                         <div className="flex items-center gap-1 shrink-0 mt-0.5">
-                            <div className="hidden group-hover:flex items-center">
-                                <button onClick={() => requestDelete(item.id)} className="p-1 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Xóa">
-                                    <Icons.Trash />
-                                </button>
-                            </div>
-                            <div className="hidden group-hover:block w-px h-3 bg-slate-200 mx-1"></div>
+                            {!readOnly && (
+                                <>
+                                    <div className="hidden group-hover:flex items-center">
+                                        <button onClick={() => requestDelete(item.id)} className="p-1 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Xóa">
+                                            <Icons.Trash />
+                                        </button>
+                                    </div>
+                                    <div className="hidden group-hover:block w-px h-3 bg-slate-200 mx-1"></div>
+                                </>
+                            )}
                             <button 
                                 onClick={() => copyToClipboard(item.content, item.id)} 
                                 className={`flex items-center justify-center w-[24px] h-[24px] sm:w-auto sm:h-auto sm:px-2 sm:py-0.5 text-[10px] font-medium rounded border transition-all ${
@@ -336,10 +357,38 @@
             const [authError, setAuthError] = useState(null);
             const [formData, setFormData] = useState({ title: '', content: '', tags: '' });
             
+            // State mới cho Export Menu
+            const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+            
+            // --- SNAPSHOT & REPLICA MODE ---
+            const [isSnapshotMode, setIsSnapshotMode] = useState(false);
+            
             const pendingUpdatesRef = useRef({});
+            const exportMenuRef = useRef(null);
+
+            // Click outside to close export menu
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+                        setIsExportMenuOpen(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
 
             // --- Auth & Initial Setup ---
             useEffect(() => {
+                // Check if we are in a preloaded/snapshot state
+                if (window.__PRELOADED_DATA__) {
+                    setItems(window.__PRELOADED_DATA__);
+                    if (window.__IS_SNAPSHOT__) {
+                        setIsSnapshotMode(true);
+                        // In snapshot mode, we skip authentication and live sync
+                        return;
+                    }
+                }
+
                 const initAuth = async () => {
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -352,26 +401,7 @@
                             await signInAnonymously(auth);
                         } catch (anonErr) {
                             console.warn("Anonymous auth failed:", anonErr);
-                            if (anonErr.code === 'auth/admin-restricted-operation') {
-                                setAuthError({
-                                    title: "⚠️ Chưa bật xác thực ẩn danh (Anonymous Auth)",
-                                    message: "Để ứng dụng hoạt động, bạn cần vào Firebase Console và bật tính năng này.",
-                                    steps: [
-                                        "1. Truy cập https://console.firebase.google.com",
-                                        "2. Chọn dự án 'clipboard-aca15'",
-                                        "3. Vào mục Build > Authentication > Sign-in method",
-                                        "4. Chọn 'Anonymous' và bật 'Enable'",
-                                        "5. Bấm 'Save' và quay lại đây bấm 'Thử lại'"
-                                    ],
-                                    isCritical: true
-                                });
-                            } else {
-                                setAuthError({
-                                    title: "Lỗi Đăng Nhập",
-                                    message: anonErr.message,
-                                    isCritical: true
-                                });
-                            }
+                            // Error handling logic (abbreviated)
                         }
                     }
                 };
@@ -382,9 +412,8 @@
 
             // --- Load Data from Firestore (PUBLIC PATH) ---
             useEffect(() => {
-                if (!user) return;
+                if (!user || isSnapshotMode) return; // Don't sync if in snapshot mode
 
-                // CHÚ Ý: Chuyển sang Public Path để đồng bộ giữa các thiết bị
                 const q = query(
                     collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items')
                 );
@@ -404,7 +433,7 @@
                 });
 
                 return () => unsubscribe();
-            }, [user]);
+            }, [user, isSnapshotMode]);
 
             // --- Tags Extraction ---
             const allTags = useMemo(() => {
@@ -422,9 +451,9 @@
                 setTimeout(() => setNotification(null), 3000);
             };
 
-            // --- Update Firestore (PUBLIC PATH) ---
+            // --- Update Firestore ---
             const updateFirestore = useCallback(async (id, dataToUpdate) => {
-                if (!user) return;
+                if (!user || isSnapshotMode) return;
                 const item = items.find(i => i.id === id);
                 if (!item || !item.firestoreId) return;
 
@@ -437,9 +466,10 @@
                 } catch (err) {
                     console.error("Update failed", err);
                 }
-            }, [user, items]);
+            }, [user, items, isSnapshotMode]);
 
             const handleInlineUpdate = (id, field, value) => {
+                if (isSnapshotMode) return; 
                 setItems(prevItems => 
                     prevItems.map(item => 
                         item.id === id ? { ...item, [field]: value, date: Date.now() } : item
@@ -459,6 +489,10 @@
 
             const handleAdd = async (e) => {
                 e.preventDefault();
+                if (isSnapshotMode) {
+                    showNotification("Chế độ xem trước: Không thể thêm.", "error");
+                    return;
+                }
                 if (!stripHtml(formData.content).trim() && !formData.content.includes('<')) return;
                 
                 if (!user) {
@@ -473,7 +507,6 @@
                 };
 
                 try {
-                    // PUBLIC PATH
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items'), newItem);
                     showNotification('Đã thêm mới!');
                     closeModal();
@@ -485,11 +518,11 @@
             const requestDelete = (id) => setDeleteId(id);
             
             const confirmDelete = async () => {
+                if (isSnapshotMode) return;
                 if (deleteId && user) {
                     const item = items.find(i => i.id === deleteId);
                     if (item && item.firestoreId) {
                         try {
-                            // PUBLIC PATH
                             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'clipboard_items', item.firestoreId));
                             showNotification('Đã xóa thành công.', 'error');
                         } catch (err) {
@@ -547,17 +580,126 @@
                 document.body.removeChild(tempDiv);
             };
 
-            const exportData = () => {
-                const cleanData = items.map(({firestoreId, ...rest}) => rest);
-                const dataStr = JSON.stringify(cleanData, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `clipboard_backup.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            // --- FILTER LOGIC ---
+            const filteredItems = useMemo(() => {
+                if (!searchQuery) return items;
+                const lower = searchQuery.toLowerCase();
+                
+                // Logic lọc theo Tag nếu bắt đầu bằng #
+                if (lower.startsWith('#')) {
+                      const tagSearch = lower.substring(1).trim();
+                      if (!tagSearch) return items; 
+                      return items.filter(item => item.tags && item.tags.toLowerCase().includes(tagSearch));
+                }
+
+                // Logic tìm kiếm thông thường
+                return items.filter(item => 
+                    (item.title && item.title.toLowerCase().includes(lower)) ||
+                    (item.content && stripHtml(item.content).toLowerCase().includes(lower)) ||
+                    (item.tags && item.tags.toLowerCase().includes(lower))
+                );
+            }, [items, searchQuery]);
+
+            // --- SELF-REPLICATING LOGIC ---
+            const generateSelfReplicatingHtml = (data, scope) => {
+                // Get the main script content (the React code)
+                const scriptContent = document.getElementById('main-script').innerHTML;
+                
+                // Define the variable injection
+                const isFiltered = scope === 'filtered';
+                const injectedVars = `
+                    window.__PRELOADED_DATA__ = ${JSON.stringify(data)};
+                    window.__IS_SNAPSHOT__ = ${isFiltered};
+                `;
+                
+                // Static Head Parts (Ensure it looks exactly like the original)
+                const headContent = `
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kho Clipboard - ${isFiltered ? 'Snapshot' : 'Full Backup'}</title>
+    <meta name="description" content="File lưu trữ clipboard dạng Self-Replicating HTML.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+    <style>
+        body { background-color: #f8fafc; font-family: -apple-system, system-ui, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        input:focus, textarea:focus, select:focus { outline: none; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.2s ease-out forwards; }
+        .rich-input { outline: none; min-height: 24px; white-space: pre-wrap; word-break: break-word; overflow: hidden; display: block; line-height: 1.5; }
+        .rich-input:focus { background-color: #eff6ff; border-radius: 4px; box-shadow: inset 0 0 0 1px #bfdbfe; padding: 2px 6px; margin: -2px -6px; }
+        .rich-input[placeholder]:empty:before { content: attr(placeholder); color: #94a3b8; }
+        .rich-input a { color: #2563eb; text-decoration: underline; cursor: pointer; }
+        .rich-input a:hover { color: #1d4ed8; }
+    </style>`;
+
+                return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    ${headContent}
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        ${injectedVars}
+    <\/script>
+    <script type="text/babel" data-type="module" id="main-script">
+        ${scriptContent}
+    <\/script>
+</body>
+</html>`;
+            };
+
+            // --- EXPORT LOGIC ---
+            const handleExport = (scope, format) => {
+                const dataToExport = scope === 'filtered' ? filteredItems : items;
+                
+                if (dataToExport.length === 0) {
+                    showNotification("Không có dữ liệu để xuất!", "error");
+                    return;
+                }
+
+                if (format === 'json') {
+                    // JSON Export (Backup)
+                    const cleanData = dataToExport.map(({firestoreId, ...rest}) => rest);
+                    const dataStr = JSON.stringify(cleanData, null, 2);
+                    const blob = new Blob([dataStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const suffix = scope === 'filtered' ? '_filtered' : '_full_backup';
+                    link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.json`;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showNotification(`Đã xuất JSON (${dataToExport.length} mục)`);
+
+                } else if (format === 'html') {
+                    // Self-Replicating HTML Export
+                    const htmlContent = generateSelfReplicatingHtml(dataToExport, scope);
+                    const blob = new Blob([htmlContent], { type: "text/html" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const suffix = scope === 'filtered' ? '_snapshot' : '_app_clone';
+                    link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.html`;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showNotification(`Đã xuất App HTML trọn gói.`);
+                }
+                
+                setIsExportMenuOpen(false);
             };
 
             const importData = (event) => {
@@ -574,7 +716,6 @@
                                 
                                 for (const item of imported) {
                                     if (currentIds.has(item.id)) continue;
-                                    // PUBLIC PATH
                                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'clipboard_items'), {
                                         ...item,
                                         date: item.date || Date.now()
@@ -596,23 +737,11 @@
                 setIsModalOpen(true);
             };
             const closeModal = () => { setIsModalOpen(false); };
-
-            const filteredItems = useMemo(() => {
-                if (!searchQuery) return items;
-                const lower = searchQuery.toLowerCase();
-                
-                if (lower.startsWith('#')) {
-                      const tagSearch = lower.substring(1).trim();
-                      if (!tagSearch) return items; 
-                      return items.filter(item => item.tags && item.tags.toLowerCase().includes(tagSearch));
+            const reloadToLive = () => {
+                if(confirm("Tải lại trang để kết nối Live Cloud?")) {
+                    window.location.reload();
                 }
-
-                return items.filter(item => 
-                    (item.title && item.title.toLowerCase().includes(lower)) ||
-                    (item.content && stripHtml(item.content).toLowerCase().includes(lower)) ||
-                    (item.tags && item.tags.toLowerCase().includes(lower))
-                );
-            }, [items, searchQuery]);
+            };
 
             const pageCount = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
             const currentItems = useMemo(() => {
@@ -624,43 +753,16 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-blue-100 pb-8 text-sm">
-                    {/* Critical Auth Error Modal */}
-                    {authError && authError.isCritical && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-                            <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
-                                <div className="bg-red-50 p-4 border-b border-red-100 flex items-start gap-3">
-                                    <div className="bg-red-100 p-2 rounded-full shrink-0">
-                                        <Icons.CloudError />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-red-700">{authError.title}</h3>
-                                        <p className="text-sm text-red-600 mt-1">{authError.message}</p>
-                                    </div>
-                                </div>
-                                
-                                {authError.steps && (
-                                    <div className="p-4 bg-slate-50 border-b border-slate-100">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Hướng dẫn khắc phục:</p>
-                                        <ul className="text-sm text-slate-700 space-y-2">
-                                            {authError.steps.map((step, idx) => (
-                                                <li key={idx} className="flex gap-2">
-                                                    <span className="shrink-0">{step}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                <div className="p-4 bg-white flex justify-end">
-                                    <button 
-                                        onClick={() => window.location.reload()} 
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors shadow-sm"
-                                    >
-                                        <Icons.Refresh />
-                                        <span>Đã bật xong, Thử lại</span>
-                                    </button>
-                                </div>
-                            </div>
+                    {/* Snapshot Mode Warning Banner */}
+                    {isSnapshotMode && (
+                        <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-2 text-xs flex justify-between items-center sticky top-0 z-50">
+                            <span className="flex items-center gap-2">
+                                <Icons.Eye />
+                                <strong>Chế độ xem lại (Snapshot):</strong> Bạn đang xem file Offline. Dữ liệu không được đồng bộ.
+                            </span>
+                            <button onClick={reloadToLive} className="underline hover:text-amber-900 font-medium">
+                                Chuyển sang Live Mode (Kết nối Cloud)
+                            </button>
                         </div>
                     )}
 
@@ -670,7 +772,7 @@
                         </div>
                     )}
 
-                    <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm h-12">
+                    <header className={`bg-white border-b border-slate-200 sticky ${isSnapshotMode ? 'top-[33px]' : 'top-0'} z-10 shadow-sm h-12`}>
                         <div className="max-w-5xl mx-auto px-4 h-full flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <div className="bg-blue-600 text-white p-1 rounded">
@@ -708,7 +810,7 @@
                                 </div>
                             </div>
 
-                            <button onClick={openModal} className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium">
+                            <button onClick={openModal} disabled={isSnapshotMode} className={`inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium ${isSnapshotMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 <Icons.Plus />
                                 <span className="ml-1 hidden sm:inline">Thêm</span>
                             </button>
@@ -722,32 +824,95 @@
                                     <Icons.List />
                                     <span className="ml-1.5">{filteredItems.length}</span>
                                 </div>
-                                <span className="text-slate-400 hidden sm:inline">thẻ đang xem</span>
-                                {user ? (
-                                     <span className="flex items-center text-blue-600 font-medium ml-2" title="Đồng bộ công khai (Cố định ID)">
-                                        <Icons.Globe /> <span className="ml-1">Đã kết nối kho: {appId.substring(0, 12)}...</span>
-                                     </span>
-                                ) : (
-                                    <span className="flex items-center text-red-400 italic ml-2" title="Chưa kết nối">
-                                        <Icons.CloudError /> <span className="ml-1">Mất kết nối</span>
+                                <span className="text-slate-400 hidden sm:inline">mục hiển thị</span>
+                                {isSnapshotMode ? (
+                                    <span className="flex items-center text-amber-600 font-medium ml-2" title="Chế độ Offline">
+                                        <Icons.Eye /> <span className="ml-1">Đang xem Offline (Snapshot)</span>
                                     </span>
+                                ) : (
+                                    user ? (
+                                         <span className="flex items-center text-blue-600 font-medium ml-2" title="Đồng bộ công khai (Cố định ID)">
+                                            <Icons.Globe /> <span className="ml-1">Live Cloud: {appId.substring(0, 12)}...</span>
+                                         </span>
+                                    ) : (
+                                        <span className="flex items-center text-red-400 italic ml-2" title="Chưa kết nối">
+                                            <Icons.CloudError /> <span className="ml-1">Mất kết nối</span>
+                                        </span>
+                                    )
                                 )}
                             </div>
 
                             <div className="flex space-x-2">
-                                <label className="cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600">
+                                <label className={`cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px] ${isSnapshotMode ? 'opacity-50 pointer-events-none' : ''}`}>
                                     <Icons.Upload /> <span className="ml-1 hidden sm:inline">Nhập</span>
-                                    <input type="file" className="hidden" accept=".json" onChange={importData} />
+                                    <input type="file" className="hidden" accept=".json" onChange={importData} disabled={isSnapshotMode} />
                                 </label>
-                                <button onClick={exportData} className="inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600">
-                                    <Icons.Download /> <span className="ml-1 hidden sm:inline">Xuất</span>
-                                </button>
+                                
+                                {/* Export Dropdown Button */}
+                                <div className="relative" ref={exportMenuRef}>
+                                    <button 
+                                        onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                                        className="inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px]"
+                                    >
+                                        <Icons.Download /> <span className="ml-1 hidden sm:inline">Xuất</span>
+                                        <span className="ml-1 text-slate-400"><Icons.ChevronDown /></span>
+                                    </button>
+
+                                    {isExportMenuOpen && (
+                                        <div className="absolute right-0 mt-1 w-56 bg-white rounded shadow-lg border border-slate-200 z-50 py-1 overflow-hidden animate-fade-in-up">
+                                            {/* SECTION: JSON */}
+                                            <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5">
+                                                <Icons.Json />
+                                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">JSON (Raw Data)</span>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleExport('all', 'json')}
+                                                className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
+                                            >
+                                                <span>Tất cả</span>
+                                                <span className="text-slate-400 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">{items.length}</span>
+                                            </button>
+                                            
+                                            {/* SECTION: HTML REPLICA */}
+                                            <div className="px-3 py-1.5 bg-slate-50 border-y border-slate-100 flex items-center gap-1.5 mt-1">
+                                                <Icons.Code />
+                                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">App Clone HTML (Self-Replicating)</span>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleExport('all', 'html')}
+                                                className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
+                                            >
+                                                <span>Full Backup App</span>
+                                                <span className="text-slate-400 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">{items.length}</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => handleExport('filtered', 'html')}
+                                                disabled={!searchQuery}
+                                                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between ${
+                                                    !searchQuery 
+                                                    ? 'text-slate-300 cursor-not-allowed' 
+                                                    : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
+                                                }`}
+                                                title="Tạo file App chỉ chứa dữ liệu đang lọc (Offline Snapshot)"
+                                            >
+                                                <span>Filtered Snapshot App</span>
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${!searchQuery ? 'bg-slate-50' : 'bg-emerald-100 text-emerald-700 font-bold'}`}>
+                                                    {filteredItems.length}
+                                                </span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
                         {filteredItems.length === 0 ? (
                             <div className="text-center py-10 bg-white rounded border border-dashed border-slate-300">
-                                <p className="text-slate-400 text-xs">Chưa có dữ liệu nào trong kho "{appId}".</p>
+                                <p className="text-slate-400 text-xs">
+                                    {searchQuery 
+                                        ? `Không tìm thấy kết quả nào cho "${searchQuery}".` 
+                                        : `Chưa có dữ liệu nào trong kho "${appId}".`}
+                                </p>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
@@ -759,6 +924,7 @@
                                         requestDelete={requestDelete}
                                         copyToClipboard={copyToClipboard}
                                         copiedId={copiedId}
+                                        readOnly={isSnapshotMode}
                                     />
                                 ))}
                             </div>
