@@ -85,7 +85,21 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module" data-presets="react" id="main-script">
+    <script type="text/babel" data-type="module" id="main-script">
+        // GIẢI PHÁP AN TOÀN: Ép cấu hình runtime sang 'classic' bằng code để Babel 7.26+ chạy ổn định trên trình duyệt mà không sinh lỗi cú pháp dấu gạch chéo ngược
+        Babel.registerPreset("react-classic-env", {
+            presets: [[Babel.availablePresets["react"], { runtime: "classic" }]]
+        });
+        // Áp dụng trực tiếp thiết lập vào tiến trình biên dịch hiện hành
+        Babel.transformScriptTags = (tags) => {
+            if (!tags) tags = document.querySelectorAll('script[type="text/babel"]');
+            tags.forEach(tag => {
+                if (!tag.getAttribute('data-presets')) {
+                    tag.setAttribute('data-presets', 'react-classic-env');
+                }
+            });
+        };
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -330,7 +344,8 @@
                                     <div className="hidden group-hover:flex items-center">
                                         <button onClick={() => requestDelete(item.id)} className="p-1 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors scale-90" title="Xóa">
                                             <Icons.Trash />
-                                        </button>                                    </div>
+                                        </button>
+                                    </div>
                                     <div className="hidden group-hover:block w-px h-3 bg-slate-200 mx-1"></div>
                                 </>
                             )}
@@ -695,7 +710,7 @@
                     window.__IS_SNAPSHOT__ = ${isFiltered};
                 `;
                 
-                // ĐÃ SỬA: Đồng bộ thuộc tính data-presets="react" cho thẻ script trong chuỗi headContent của bản Clone
+                // Chuỗi thô tĩnh headContent đảm bảo trích xuất offline sạch sẽ, không dính ký tự lỗi hệ thống
                 const headContent = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -734,7 +749,7 @@
     <script>
         ${injectedVars}
     <\/script>
-    <script type="text/babel" data-type="module" data-presets="react" id="main-script">
+    <script type="text/babel" data-type="module" id="main-script">
         ${scriptContent}
     <\/script>
 </body>
@@ -1069,7 +1084,8 @@
                                 <form onSubmit={handleAdd}>
                                     <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                                         <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "\${activeTab}"` : ''}</h3>
-                                        <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>                                    </div>
+                                        <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>
+                                    </div>
                                     <div className="p-4 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-slate-700 mb-1">Tiêu đề</label>
