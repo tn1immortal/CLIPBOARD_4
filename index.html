@@ -6,18 +6,14 @@
     <title>Kho Clipboard - Compact Layout</title>
     <meta name="description" content="Ứng dụng lưu trữ clipboard, giao diện gọn gàng, hỗ trợ Tab và Self-Replicating Code.">
     
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.26.2/babel.min.js"></script>
     
     <style>
         body {
@@ -89,8 +85,7 @@
 <body>
     <div id="root"></div>
 
-    <!-- QUAN TRỌNG: Thêm ID cho script chính để code có thể tự đọc chính nó -->
-    <script type="text/babel" data-type="module" id="main-script">
+    <script type="text/babel" data-type="module" data-presets="react" id="main-script">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -701,17 +696,17 @@
                     window.__IS_SNAPSHOT__ = ${isFiltered};
                 `;
                 
-                // Static Head Parts (Ensure it looks exactly like the original)
+                // Static Head Parts (Cố định chuẩn xác phiên bản Babel đã chọn)
                 const headContent = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kho Clipboard - ${isFiltered ? 'Snapshot' : 'Full Backup'}</title>
+    <title>Kho Clipboard - \${isFiltered ? 'Snapshot' : 'Full Backup'}</title>
     <meta name="description" content="File lưu trữ clipboard dạng Self-Replicating HTML.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
     <script src="https://cdn.tailwindcss.com"><\/script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+    <script src="https://unpkg.com/@babel/standalone@7.26.2/babel.min.js"><\/script>
     <style>
         body { background-color: #f8fafc; font-family: -apple-system, system-ui, sans-serif; font-size: 13px; -webkit-font-smoothing: antialiased; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -730,6 +725,7 @@
         .rich-input a:hover { color: #1d4ed8; }
     </style>`;
 
+                // SỬA LỖI ĐỒNG BỘ: Thêm cả thuộc tính data-presets="react" cho các phiên bản file Clone tự sinh
                 return `<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -740,7 +736,7 @@
     <script>
         ${injectedVars}
     <\/script>
-    <script type="text/babel" data-type="module" id="main-script">
+    <script type="text/babel" data-type="module" data-presets="react" id="main-script">
         ${scriptContent}
     <\/script>
 </body>
@@ -766,12 +762,12 @@
                     const link = document.createElement('a');
                     link.href = url;
                     const suffix = scope === 'filtered' ? '_filtered' : '_full_backup';
-                    link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.json`;
+                    link.download = `clipboard\${suffix}_\${new Date().toISOString().slice(0,10)}.json`;
                     
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    showNotification(`Đã xuất JSON (${dataToExport.length} mục)`);
+                    showNotification(`Đã xuất JSON (\${dataToExport.length} mục)`);
 
                 } else if (format === 'html') {
                     // Self-Replicating HTML Export
@@ -782,7 +778,7 @@
                     const link = document.createElement('a');
                     link.href = url;
                     const suffix = scope === 'filtered' ? '_snapshot' : '_app_clone';
-                    link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.html`;
+                    link.download = `clipboard\${suffix}_\${new Date().toISOString().slice(0,10)}.html`;
                     
                     document.body.appendChild(link);
                     link.click();
@@ -801,7 +797,7 @@
                     try {
                         const imported = JSON.parse(e.target.result);
                         if (Array.isArray(imported)) {
-                            if(confirm(`Tìm thấy ${imported.length} mục. Nhập vào Cloud?`)) {
+                            if(confirm(`Tìm thấy \${imported.length} mục. Nhập vào Cloud?`)) {
                                 let count = 0;
                                 const currentIds = new Set(items.map(i => i.id));
                                 
@@ -813,7 +809,7 @@
                                     });
                                     count++;
                                 }
-                                showNotification(`Đã nhập ${count} mục mới!`);
+                                showNotification(`Đã nhập \${count} mục mới!`);
                             }
                         }
                     } catch (err) { 
@@ -863,18 +859,17 @@
                     )}
 
                     {notification && (
-                        <div className={`fixed top-14 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
+                        <div className={`fixed top-14 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce \${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}\`}>
                             {notification.msg}
                         </div>
                     )}
 
-                    <header className={`bg-white border-b border-slate-200 sticky ${isSnapshotMode ? 'top-[33px]' : 'top-0'} z-10 shadow-sm`}>
+                    <header className={`bg-white border-b border-slate-200 sticky \${isSnapshotMode ? 'top-[33px]' : 'top-0'} z-10 shadow-sm`}>
                         {/* MAIN HEADER ROW */}
                         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <div className="bg-blue-600 text-white p-1 rounded">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>                                </div>
                                 <h1 className="text-base font-bold text-blue-700 hidden sm:block">Kho Clipboard</h1>
                             </div>
 
@@ -884,14 +879,14 @@
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder={activeTab !== 'all' ? `Tìm trong "${activeTab}"...` : "Tìm kiếm..."}
+                                    placeholder={activeTab !== 'all' ? `Tìm trong "\${activeTab}"...` : "Tìm kiếm..."}
                                     className="block w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded bg-slate-50 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
 
-                            <button onClick={openModal} disabled={isSnapshotMode} className={`inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium ${isSnapshotMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <button onClick={openModal} disabled={isSnapshotMode} className={`inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium \${isSnapshotMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 <Icons.Plus />
                                 <span className="ml-1 hidden sm:inline">Thêm</span>
                             </button>
@@ -901,11 +896,11 @@
                         <div className="max-w-5xl mx-auto px-4 pb-0 overflow-x-auto no-scrollbar flex items-center gap-2 -mb-[1px]">
                             <button 
                                 onClick={() => setActiveTab('all')}
-                                className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors ${
+                                className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors \${
                                     activeTab === 'all' 
                                     ? 'border-blue-600 text-blue-600' 
                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                }`}
+                                }\`}
                             >
                                 Tất cả
                             </button>
@@ -913,11 +908,11 @@
                                 <button 
                                     key={tag}
                                     onClick={() => setActiveTab(tag)}
-                                    className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors ${
+                                    className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors \${
                                         activeTab === tag 
                                         ? 'border-blue-600 text-blue-600' 
                                         : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                    }`}
+                                    }\`}
                                 >
                                     {tag}
                                 </button>
@@ -942,7 +937,7 @@
                                     <span className="ml-1.5">{filteredItems.length}</span>
                                 </div>
                                 <span className="text-slate-400 hidden sm:inline">
-                                    {activeTab !== 'all' ? `mục trong "${activeTab}"` : 'mục hiển thị'}
+                                    {activeTab !== 'all' ? `mục trong "\${activeTab}"` : 'mục hiển thị'}
                                 </span>
                                 
                                 {activeTab !== 'all' && !isSnapshotMode && (
@@ -974,7 +969,7 @@
                             </div>
 
                             <div className="flex space-x-2">
-                                <label className={`cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px] ${isSnapshotMode ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <label className={`cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px] \${isSnapshotMode ? 'opacity-50 pointer-events-none' : ''}\`}>
                                     <Icons.Upload /> <span className="ml-1 hidden sm:inline">Nhập</span>
                                     <input type="file" className="hidden" accept=".json" onChange={importData} disabled={isSnapshotMode} />
                                 </label>
@@ -1019,15 +1014,15 @@
                                             <button 
                                                 onClick={() => handleExport('filtered', 'html')}
                                                 disabled={activeTab === 'all' && !searchQuery}
-                                                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between ${
+                                                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between \${
                                                     (activeTab === 'all' && !searchQuery)
                                                     ? 'text-slate-300 cursor-not-allowed' 
                                                     : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
-                                                }`}
+                                                }\`}
                                                 title="Tạo file App chỉ chứa dữ liệu đang lọc (Offline Snapshot)"
                                             >
                                                 <span>Filtered Snapshot App</span>
-                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${(!searchQuery && activeTab === 'all') ? 'bg-slate-50' : 'bg-emerald-100 text-emerald-700 font-bold'}`}>
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full \${(!searchQuery && activeTab === 'all') ? 'bg-slate-50' : 'bg-emerald-100 text-emerald-700 font-bold'}\`}>
                                                     {filteredItems.length}
                                                 </span>
                                             </button>
@@ -1041,8 +1036,8 @@
                             <div className="text-center py-10 bg-white rounded border border-dashed border-slate-300">
                                 <p className="text-slate-400 text-xs">
                                     {searchQuery 
-                                        ? `Không tìm thấy kết quả nào cho "${searchQuery}" trong tab "${activeTab === 'all' ? 'Tất cả' : activeTab}".` 
-                                        : `Chưa có dữ liệu nào trong tab "${activeTab}".`}
+                                        ? `Không tìm thấy kết quả nào cho "\${searchQuery}" trong tab "\${activeTab === 'all' ? 'Tất cả' : activeTab}".` 
+                                        : `Chưa có dữ liệu nào trong tab "\${activeTab}".`}
                                 </p>
                             </div>
                         ) : (
@@ -1075,7 +1070,7 @@
                             <div className="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                                 <form onSubmit={handleAdd}>
                                     <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                        <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "${activeTab}"` : ''}</h3>
+                                        <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "\${activeTab}"` : ''}</h3>
                                         <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>
                                     </div>
                                     <div className="p-4 space-y-3">
