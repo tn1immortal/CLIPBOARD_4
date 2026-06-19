@@ -330,8 +330,7 @@
                                     <div className="hidden group-hover:flex items-center">
                                         <button onClick={() => requestDelete(item.id)} className="p-1 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded transition-colors scale-90" title="Xóa">
                                             <Icons.Trash />
-                                        </button>
-                                    </div>
+                                        </button>                                    </div>
                                     <div className="hidden group-hover:block w-px h-3 bg-slate-200 mx-1"></div>
                                 </>
                             )}
@@ -696,7 +695,7 @@
                     window.__IS_SNAPSHOT__ = ${isFiltered};
                 `;
                 
-                // Static Head Parts (Cố định chuẩn xác phiên bản Babel đã chọn)
+                // ĐÃ SỬA: Đồng bộ thuộc tính data-presets="react" cho thẻ script trong chuỗi headContent của bản Clone
                 const headContent = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -725,7 +724,6 @@
         .rich-input a:hover { color: #1d4ed8; }
     </style>`;
 
-                // SỬA LỖI ĐỒNG BỘ: Thêm cả thuộc tính data-presets="react" cho các phiên bản file Clone tự sinh
                 return `<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1071,8 +1069,7 @@
                                 <form onSubmit={handleAdd}>
                                     <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                                         <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "\${activeTab}"` : ''}</h3>
-                                        <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>
-                                    </div>
+                                        <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>                                    </div>
                                     <div className="p-4 space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-slate-700 mb-1">Tiêu đề</label>
