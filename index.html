@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -6,14 +7,20 @@
     <title>Kho Clipboard - Compact Layout</title>
     <meta name="description" content="Ứng dụng lưu trữ clipboard, giao diện gọn gàng, hỗ trợ Tab và Self-Replicating Code.">
     
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- React & ReactDOM (đã ghim phiên bản để tránh bị breaking change từ bản mới) -->
+    <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
     
-    <script src="https://unpkg.com/@babel/standalone@7.26.2/babel.min.js"></script>
+    <!-- Babel: GHIM PHIÊN BẢN 7.x. Babel 8 đổi mặc định JSX runtime sang "automatic"
+         (yêu cầu import "react/jsx-runtime" qua bundler/import-map), không tương thích
+         với cách nạp React qua thẻ <script> UMD ở trên -> gây lỗi không render được app. -->
+    <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
     
     <style>
         body {
@@ -85,21 +92,8 @@
 <body>
     <div id="root"></div>
 
+    <!-- QUAN TRỌNG: Thêm ID cho script chính để code có thể tự đọc chính nó -->
     <script type="text/babel" data-type="module" id="main-script">
-        // GIẢI PHÁP AN TOÀN: Ép cấu hình runtime sang 'classic' bằng code để Babel 7.26+ chạy ổn định trên trình duyệt mà không sinh lỗi cú pháp dấu gạch chéo ngược
-        Babel.registerPreset("react-classic-env", {
-            presets: [[Babel.availablePresets["react"], { runtime: "classic" }]]
-        });
-        // Áp dụng trực tiếp thiết lập vào tiến trình biên dịch hiện hành
-        Babel.transformScriptTags = (tags) => {
-            if (!tags) tags = document.querySelectorAll('script[type="text/babel"]');
-            tags.forEach(tag => {
-                if (!tag.getAttribute('data-presets')) {
-                    tag.setAttribute('data-presets', 'react-classic-env');
-                }
-            });
-        };
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -218,7 +212,6 @@
                     contentEditable
                     onBlur={handleBlur}
                     placeholder={placeholder}
-                    dangerouslySetInnerHTML={{__html: html}} 
                 />
             );
         };
@@ -620,7 +613,7 @@
                     if (item && item.firestoreId) {
                         try {
                             await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'clipboard_items', item.firestoreId));
-                            showNotification('Đã xóa thành công.', 'error');
+                            showNotification('Đã xóa thành công.');
                         } catch (err) {
                             showNotification('Lỗi xóa!', 'error');
                         }
@@ -701,7 +694,11 @@
             // --- SELF-REPLICATING LOGIC ---
             const generateSelfReplicatingHtml = (data, scope) => {
                 // Get the main script content (the React code)
-                const scriptContent = document.getElementById('main-script').innerHTML;
+                const mainScriptEl = document.getElementById('main-script');
+                if (!mainScriptEl) {
+                    throw new Error('Không tìm thấy script gốc (id="main-script") để nhân bản.');
+                }
+                const scriptContent = mainScriptEl.innerHTML;
                 
                 // Define the variable injection
                 const isFiltered = scope === 'filtered';
@@ -710,17 +707,17 @@
                     window.__IS_SNAPSHOT__ = ${isFiltered};
                 `;
                 
-                // Chuỗi thô tĩnh headContent đảm bảo trích xuất offline sạch sẽ, không dính ký tự lỗi hệ thống
+                // Static Head Parts (Ensure it looks exactly like the original)
                 const headContent = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kho Clipboard - \${isFiltered ? 'Snapshot' : 'Full Backup'}</title>
+    <title>Kho Clipboard - ${isFiltered ? 'Snapshot' : 'Full Backup'}</title>
     <meta name="description" content="File lưu trữ clipboard dạng Self-Replicating HTML.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
     <script src="https://cdn.tailwindcss.com"><\/script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>
-    <script src="https://unpkg.com/@babel/standalone@7.26.2/babel.min.js"><\/script>
+    <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"><\/script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"><\/script>
+    <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"><\/script>
     <style>
         body { background-color: #f8fafc; font-family: -apple-system, system-ui, sans-serif; font-size: 13px; -webkit-font-smoothing: antialiased; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -775,28 +772,33 @@
                     const link = document.createElement('a');
                     link.href = url;
                     const suffix = scope === 'filtered' ? '_filtered' : '_full_backup';
-                    link.download = `clipboard\${suffix}_\${new Date().toISOString().slice(0,10)}.json`;
+                    link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.json`;
                     
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    showNotification(`Đã xuất JSON (\${dataToExport.length} mục)`);
+                    showNotification(`Đã xuất JSON (${dataToExport.length} mục)`);
 
                 } else if (format === 'html') {
                     // Self-Replicating HTML Export
-                    const htmlContent = generateSelfReplicatingHtml(dataToExport, scope);
-                    const blob = new Blob([htmlContent], { type: "text/html" });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    const suffix = scope === 'filtered' ? '_snapshot' : '_app_clone';
-                    link.download = `clipboard\${suffix}_\${new Date().toISOString().slice(0,10)}.html`;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showNotification(`Đã xuất App HTML trọn gói.`);
+                    try {
+                        const htmlContent = generateSelfReplicatingHtml(dataToExport, scope);
+                        const blob = new Blob([htmlContent], { type: "text/html" });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = url;
+                        const suffix = scope === 'filtered' ? '_snapshot' : '_app_clone';
+                        link.download = `clipboard${suffix}_${new Date().toISOString().slice(0,10)}.html`;
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        showNotification(`Đã xuất App HTML trọn gói.`);
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Lỗi khi xuất file HTML!', 'error');
+                    }
                 }
                 
                 setIsExportMenuOpen(false);
@@ -810,7 +812,7 @@
                     try {
                         const imported = JSON.parse(e.target.result);
                         if (Array.isArray(imported)) {
-                            if(confirm(`Tìm thấy \${imported.length} mục. Nhập vào Cloud?`)) {
+                            if(confirm(`Tìm thấy ${imported.length} mục. Nhập vào Cloud?`)) {
                                 let count = 0;
                                 const currentIds = new Set(items.map(i => i.id));
                                 
@@ -822,7 +824,7 @@
                                     });
                                     count++;
                                 }
-                                showNotification(`Đã nhập \${count} mục mới!`);
+                                showNotification(`Đã nhập ${count} mục mới!`);
                             }
                         }
                     } catch (err) { 
@@ -872,17 +874,18 @@
                     )}
 
                     {notification && (
-                        <div className={`fixed top-14 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce \${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}\`}>
+                        <div className={`fixed top-14 right-4 z-50 px-4 py-2 rounded shadow-lg text-white text-xs animate-bounce ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
                             {notification.msg}
                         </div>
                     )}
 
-                    <header className={`bg-white border-b border-slate-200 sticky \${isSnapshotMode ? 'top-[33px]' : 'top-0'} z-10 shadow-sm`}>
+                    <header className={`bg-white border-b border-slate-200 sticky ${isSnapshotMode ? 'top-[33px]' : 'top-0'} z-10 shadow-sm`}>
                         {/* MAIN HEADER ROW */}
                         <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <div className="bg-blue-600 text-white p-1 rounded">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>                                </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                </div>
                                 <h1 className="text-base font-bold text-blue-700 hidden sm:block">Kho Clipboard</h1>
                             </div>
 
@@ -892,14 +895,14 @@
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder={activeTab !== 'all' ? `Tìm trong "\${activeTab}"...` : "Tìm kiếm..."}
+                                    placeholder={activeTab !== 'all' ? `Tìm trong "${activeTab}"...` : "Tìm kiếm..."}
                                     className="block w-full pl-8 pr-3 py-1.5 text-sm border border-slate-300 rounded bg-slate-50 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
 
-                            <button onClick={openModal} disabled={isSnapshotMode} className={`inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium \${isSnapshotMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <button onClick={openModal} disabled={isSnapshotMode} className={`inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition-all flex-shrink-0 text-xs font-medium ${isSnapshotMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 <Icons.Plus />
                                 <span className="ml-1 hidden sm:inline">Thêm</span>
                             </button>
@@ -909,11 +912,11 @@
                         <div className="max-w-5xl mx-auto px-4 pb-0 overflow-x-auto no-scrollbar flex items-center gap-2 -mb-[1px]">
                             <button 
                                 onClick={() => setActiveTab('all')}
-                                className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors \${
+                                className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors ${
                                     activeTab === 'all' 
                                     ? 'border-blue-600 text-blue-600' 
                                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                }\`}
+                                }`}
                             >
                                 Tất cả
                             </button>
@@ -921,11 +924,11 @@
                                 <button 
                                     key={tag}
                                     onClick={() => setActiveTab(tag)}
-                                    className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors \${
+                                    className={`whitespace-nowrap pb-2 pt-1 px-1 border-b-2 text-xs font-medium transition-colors ${
                                         activeTab === tag 
                                         ? 'border-blue-600 text-blue-600' 
                                         : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                                    }\`}
+                                    }`}
                                 >
                                     {tag}
                                 </button>
@@ -950,7 +953,7 @@
                                     <span className="ml-1.5">{filteredItems.length}</span>
                                 </div>
                                 <span className="text-slate-400 hidden sm:inline">
-                                    {activeTab !== 'all' ? `mục trong "\${activeTab}"` : 'mục hiển thị'}
+                                    {activeTab !== 'all' ? `mục trong "${activeTab}"` : 'mục hiển thị'}
                                 </span>
                                 
                                 {activeTab !== 'all' && !isSnapshotMode && (
@@ -982,7 +985,7 @@
                             </div>
 
                             <div className="flex space-x-2">
-                                <label className={`cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px] \${isSnapshotMode ? 'opacity-50 pointer-events-none' : ''}\`}>
+                                <label className={`cursor-pointer inline-flex items-center px-2 py-1 border border-slate-300 bg-white hover:bg-slate-50 rounded text-xs font-medium text-slate-600 h-[28px] ${isSnapshotMode ? 'opacity-50 pointer-events-none' : ''}`}>
                                     <Icons.Upload /> <span className="ml-1 hidden sm:inline">Nhập</span>
                                     <input type="file" className="hidden" accept=".json" onChange={importData} disabled={isSnapshotMode} />
                                 </label>
@@ -1027,15 +1030,15 @@
                                             <button 
                                                 onClick={() => handleExport('filtered', 'html')}
                                                 disabled={activeTab === 'all' && !searchQuery}
-                                                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between \${
+                                                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between ${
                                                     (activeTab === 'all' && !searchQuery)
                                                     ? 'text-slate-300 cursor-not-allowed' 
                                                     : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700'
-                                                }\`}
+                                                }`}
                                                 title="Tạo file App chỉ chứa dữ liệu đang lọc (Offline Snapshot)"
                                             >
                                                 <span>Filtered Snapshot App</span>
-                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full \${(!searchQuery && activeTab === 'all') ? 'bg-slate-50' : 'bg-emerald-100 text-emerald-700 font-bold'}\`}>
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${(!searchQuery && activeTab === 'all') ? 'bg-slate-50' : 'bg-emerald-100 text-emerald-700 font-bold'}`}>
                                                     {filteredItems.length}
                                                 </span>
                                             </button>
@@ -1049,8 +1052,8 @@
                             <div className="text-center py-10 bg-white rounded border border-dashed border-slate-300">
                                 <p className="text-slate-400 text-xs">
                                     {searchQuery 
-                                        ? `Không tìm thấy kết quả nào cho "\${searchQuery}" trong tab "\${activeTab === 'all' ? 'Tất cả' : activeTab}".` 
-                                        : `Chưa có dữ liệu nào trong tab "\${activeTab}".`}
+                                        ? `Không tìm thấy kết quả nào cho "${searchQuery}" trong tab "${activeTab === 'all' ? 'Tất cả' : activeTab}".` 
+                                        : `Chưa có dữ liệu nào trong tab "${activeTab}".`}
                                 </p>
                             </div>
                         ) : (
@@ -1083,7 +1086,7 @@
                             <div className="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-up">
                                 <form onSubmit={handleAdd}>
                                     <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                        <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "\${activeTab}"` : ''}</h3>
+                                        <h3 className="text-base font-medium text-slate-900">Thêm Mới {activeTab !== 'all' ? `vào "${activeTab}"` : ''}</h3>
                                         <button type="button" onClick={closeModal} className="text-slate-400 hover:text-slate-600"><Icons.X /></button>
                                     </div>
                                     <div className="p-4 space-y-3">
@@ -1144,8 +1147,41 @@
             );
         }
 
+        // --- Error Boundary: tránh màn hình trắng khi có lỗi runtime bất kỳ ---
+        class ErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+            componentDidCatch(error, info) {
+                console.error('App crashed:', error, info);
+            }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+                            <div className="bg-white border border-red-200 rounded shadow-sm max-w-md w-full p-5 text-center">
+                                <p className="text-red-600 font-semibold mb-1">Đã có lỗi xảy ra</p>
+                                <p className="text-xs text-slate-500 mb-3">{String(this.state.error && this.state.error.message || this.state.error)}</p>
+                                <button
+                                    onClick={() => window.location.reload()}
+                                    className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium"
+                                >
+                                    Tải lại trang
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<ErrorBoundary><App /></ErrorBoundary>);
     </script>
 </body>
 </html>
